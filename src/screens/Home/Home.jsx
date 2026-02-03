@@ -50,6 +50,10 @@ function Home() {
     const oneWaifu = new Set();
     const requests = Array(24).fill().map(() => fetchWaifus(tipo, categoriaSelecionada));
 
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 15000);
+
     let carregados = 0;
 
     for await (const result of requests) {
@@ -60,16 +64,13 @@ function Home() {
         carregados++;
 
         if (carregados === 6) {
+          clearTimeout(timer);
           setLoading(false);
         }
       }
-      // setLoading(false);
     }
-
-    // const results = await Promise.all(requests);
-    // setImagens(results.filter(Boolean));
-
-    // setLoading(false);
+    clearTimeout(timer);
+    setLoading(false);
   };
 
   return (
