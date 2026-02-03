@@ -47,18 +47,29 @@ function Home() {
     setLoading(true);
     setImagens([]);
 
+    const oneWaifu = new Set();
     const requests = Array(24).fill().map(() => fetchWaifus(tipo, categoriaSelecionada));
 
+    let carregados = 0;
+
     for await (const result of requests) {
-      if (result) {
+      if (result && !oneWaifu.has(result)) {
+        oneWaifu.add(result);
+
         setImagens(prev => [...prev, result]);
+        carregados++;
+
+        if (carregados === 6) {
+          setLoading(false);
+        }
       }
+      // setLoading(false);
     }
 
     // const results = await Promise.all(requests);
     // setImagens(results.filter(Boolean));
 
-    setLoading(false);
+    // setLoading(false);
   };
 
   return (
