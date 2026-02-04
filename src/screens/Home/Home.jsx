@@ -52,7 +52,7 @@ function Home() {
 
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 5000);
 
     let carregados = 0;
 
@@ -65,12 +65,11 @@ function Home() {
 
         if (carregados === 6) {
           setLoading(false);
-          clearTimeout(timer);
         }
       }
     }
-    clearTimeout(timer);
     setLoading(false);
+    clearTimeout(timer);
   };
 
   return (
