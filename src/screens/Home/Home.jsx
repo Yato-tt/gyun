@@ -52,7 +52,7 @@ function Home() {
 
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 5000);
+    }, 2000);
 
     let carregados = 0;
 
