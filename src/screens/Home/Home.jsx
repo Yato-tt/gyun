@@ -64,8 +64,8 @@ function Home() {
         carregados++;
 
         if (carregados === 6) {
-          clearTimeout(timer);
           setLoading(false);
+          clearTimeout(timer);
         }
       }
     }
