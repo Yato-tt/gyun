@@ -66,7 +66,7 @@ function Home() {
         setCopiado(index);
         setTimeout(() => setCopiado(null), 2000);
       } catch (e) {
-        alert('Não foi possível copiar', e);
+        alert('Não foi possível copiar');
       }
     }
   };
@@ -89,32 +89,32 @@ function Home() {
     }
 
     const oneWaifu = new Set(imagens.map(img => img));
-    let carregados = 0;
+    const imagensNovas = [];
     const tipoAtual = tipo;
     const categoriaAtual = categoriaSelecionada;
 
     const requests = Array(quantidade).fill().map(() => fetchWaifus(tipoAtual, categoriaAtual));
 
-    for (const promise of requests) {
-      try {
-        const result = await promise;
+    const resultados = await Promise.allSettled(requests);
 
-        if (result &&
-            !oneWaifu.has(result) &&
-            buscaAtualRef.current.tipo === tipoAtual &&
-            buscaAtualRef.current.categoria === categoriaAtual) {
+    for (const resultado of resultados) {
+      if (resultado.status === 'fulfilled' &&
+          resultado.value &&
+          !oneWaifu.has(resultado.value) &&
+          buscaAtualRef.current.tipo === tipoAtual &&
+          buscaAtualRef.current.categoria === categoriaAtual) {
 
-          oneWaifu.add(result);
-          setImagens(prev => [...prev, result]);
-          carregados++;
+        oneWaifu.add(resultado.value);
+        imagensNovas.push(resultado.value);
 
-          if (carregados === 6 && !append) {
-            setLoading(false);
-          }
+        if (imagensNovas.length === 6 && !append) {
+          setLoading(false);
         }
-      } catch (error) {
-        console.log('Erro ao carregar imagem:', error);
       }
+    }
+
+    if (imagensNovas.length > 0) {
+      setImagens(prev => [...prev, ...imagensNovas]);
     }
 
     setLoadingMore(false);
@@ -139,7 +139,7 @@ function Home() {
   }, [imagens.length, loadingMore, loading, tipo, categoriaSelecionada]);
 
   return (
-    <>
+    <div className="min-h-screen">
       <Header />
 
       {loading && (
@@ -162,26 +162,28 @@ function Home() {
         {imagens.map((image, index) => (
           <div
             key={`${image}-${index}`}
-            className="break-inside-avoid bg-transparent rounded-2xl overflow-hidden relative group cursor-pointer"
+            className="break-inside-avoid rounded-2xl overflow-visible relative group cursor-pointer mb-3 md:mb-4"
             onClick={() => copiarImagem(image, index)}
           >
-            <img
-              src={image}
-              alt={`Imagem ${index}`}
-              className="w-full h-auto rounded-2xl object-cover"
-            />
+            <div className="relative transition-all duration-300 hover:scale-150 hover:z-50 hover:shadow-2xl">
+              <img
+                src={image}
+                alt={`Imagem ${index}`}
+                className="w-full h-auto rounded-2xl object-cover shadow-lg"
+              />
 
-            <div className="absolute top-2 right-2 bg-black/60 text-white p-2 rounded-full md:opacity-0 md:group-hover:opacity-100 opacity-70 transition-opacity duration-200 pointer-events-none">
-              <FaCopy size={16} />
-            </div>
-
-            {copiado === index && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/70 animate-fadeIn">
-                <div className="bg-green-500 text-white px-6 py-3 rounded-xl text-lg font-bold shadow-lg">
-                  ✓ Copiado!
-                </div>
+              <div className="absolute top-2 right-2 bg-black/60 text-white p-2 rounded-full md:opacity-0 md:group-hover:opacity-100 opacity-70 transition-opacity duration-200 pointer-events-none z-10">
+                <FaCopy size={16} />
               </div>
-            )}
+
+              {copiado === index && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
+                  <div className="bg-green-500 text-white px-6 py-3 rounded-xl text-lg font-bold shadow-lg">
+                    ✓ Copiado!
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </Galery>
@@ -209,23 +211,23 @@ function Home() {
       )}
 
       <Button
-        className="fixed bottom-14 right-0 z-16 p-4 m-4 rounded-full text-cyan-50 bg-lime-900"
+        className="fixed bottom-14 right-0 z-18 p-4 m-4 rounded-full text-cyan-50 bg-lime-900"
         onClick={() => buscaWaifus(false)}
         title={<FaSearch size={16} />}
       />
 
       <Button
-        className="fixed bottom-0 right-0 z-16 p-4 m-4 rounded-full text-cyan-50 bg-amber-300"
+        className="fixed bottom-0 right-0 z-18 p-4 m-4 rounded-full text-cyan-50 bg-amber-300"
         onClick={handleModal}
         title={viewModal ? <FaWindowClose size={16} /> : <FaPlus size={16} />}
       />
 
       <Button
-        className="fixed bottom-0 right-14 z-16 p-2 m-4 rounded-full text-cyan-50 bg-pink-600"
+        className="fixed bottom-0 right-14 z-18 p-2 m-4 rounded-full text-cyan-50 bg-pink-600"
         onClick={handleTipo}
         title={tipo.toUpperCase()}
       />
-    </>
+    </div>
   );
 }
 
