@@ -162,7 +162,7 @@ function Home() {
         {imagens.map((image, index) => (
           <div
             key={`${image}-${index}`}
-            className="mb-4 break-inside-avoid bg-gray-50 rounded-2xl overflow-hidden relative group cursor-pointer"
+            className="break-inside-avoid bg-transparent rounded-2xl overflow-hidden relative group cursor-pointer"
             onClick={() => copiarImagem(image, index)}
           >
             <img
