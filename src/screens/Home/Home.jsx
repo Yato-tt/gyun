@@ -18,6 +18,7 @@ function Home() {
   const [copiado, setCopiado] = useState(null);
 
   const buscaAtualRef = useRef({ tipo: '', categoria: '' });
+  const carregandoOndasRef = useRef(false); // Previne ondas duplicadas
 
   const nsfw = ['waifu', 'neko', 'trap', 'blowjob'];
   const sfw = [
@@ -71,54 +72,77 @@ function Home() {
     }
   };
 
+  const buscarOnda = async (tipoAtual, categoriaAtual, imagensExistentes) => {
+    const oneWaifu = new Set(imagensExistentes);
+    const imagensNovas = [];
+
+    const requests = Array(6).fill().map(() => fetchWaifus(tipoAtual, categoriaAtual));
+    const resultados = await Promise.allSettled(requests);
+
+    for (const resultado of resultados) {
+      if (resultado.status === 'fulfilled' &&
+          resultado.value &&
+          !oneWaifu.has(resultado.value)) {
+        oneWaifu.add(resultado.value);
+        imagensNovas.push(resultado.value);
+      }
+    }
+
+    return imagensNovas;
+  };
+
+  const carregarOndas = async (totalOndas, append = false) => {
+    if (carregandoOndasRef.current) return;
+    carregandoOndasRef.current = true;
+
+    const tipoAtual = tipo;
+    const categoriaAtual = categoriaSelecionada;
+    let imagensAcumuladas = append ? [...imagens] : [];
+
+    for (let i = 0; i < totalOndas; i++) {
+      // Verifica se ainda é a mesma busca
+      if (buscaAtualRef.current.tipo !== tipoAtual ||
+          buscaAtualRef.current.categoria !== categoriaAtual) {
+        break;
+      }
+
+      const novasImagens = await buscarOnda(tipoAtual, categoriaAtual, imagensAcumuladas);
+
+      if (novasImagens.length > 0) {
+        imagensAcumuladas = [...imagensAcumuladas, ...novasImagens];
+        setImagens(imagensAcumuladas);
+
+        if (i === 0 && !append) {
+          setLoading(false);
+        }
+
+        if (i < totalOndas - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+    }
+
+    carregandoOndasRef.current = false;
+  };
+
   const buscaWaifus = async (append = false) => {
     if (loadingMore || loading) return;
-
-    const quantidade = append ? 12 : 24;
 
     if (!append) {
       setLoading(true);
       setImagens([]);
       buscaAtualRef.current = { tipo, categoria: categoriaSelecionada };
+      await carregarOndas(4, false);
+      setLoading(false);
     } else {
       if (buscaAtualRef.current.tipo !== tipo ||
           buscaAtualRef.current.categoria !== categoriaSelecionada) {
         return;
       }
       setLoadingMore(true);
+      await carregarOndas(2, true);
+      setLoadingMore(false);
     }
-
-    const oneWaifu = new Set(imagens.map(img => img));
-    const imagensNovas = [];
-    const tipoAtual = tipo;
-    const categoriaAtual = categoriaSelecionada;
-
-    const requests = Array(quantidade).fill().map(() => fetchWaifus(tipoAtual, categoriaAtual));
-
-    const resultados = await Promise.allSettled(requests);
-
-    for (const resultado of resultados) {
-      if (resultado.status === 'fulfilled' &&
-          resultado.value &&
-          !oneWaifu.has(resultado.value) &&
-          buscaAtualRef.current.tipo === tipoAtual &&
-          buscaAtualRef.current.categoria === categoriaAtual) {
-
-        oneWaifu.add(resultado.value);
-        imagensNovas.push(resultado.value);
-
-        if (imagensNovas.length === 6 && !append) {
-          setLoading(false);
-        }
-      }
-    }
-
-    if (imagensNovas.length > 0) {
-      setImagens(prev => [...prev, ...imagensNovas]);
-    }
-
-    setLoadingMore(false);
-    if (!append) setLoading(false);
   };
 
   useEffect(() => {
@@ -162,13 +186,14 @@ function Home() {
         {imagens.map((image, index) => (
           <div
             key={`${image}-${index}`}
-            className="break-inside-avoid rounded-2xl overflow-visible relative group cursor-pointer mb-3 md:mb-4"
+            className="break-inside-avoid rounded-2xl overflow-visible relative group cursor-pointer"
             onClick={() => copiarImagem(image, index)}
           >
             <div className="relative transition-all duration-300 hover:scale-150 hover:z-50 hover:shadow-2xl">
               <img
                 src={image}
                 alt={`Imagem ${index}`}
+                loading="lazy"
                 className="w-full h-auto rounded-2xl object-cover shadow-lg"
               />
 
