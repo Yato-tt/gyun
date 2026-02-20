@@ -1,16 +1,16 @@
 import React from "react";
 
-function Container({title, children}) {
-  return(
-    <div className="fixed inset-0 flex flex-col items-center text-center justify-center bg-cyan-950/25">
-      <div className="bg-cyan-50 border-gray-200 rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-4">{title}</h1>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-left">
-          {children}
-        </div>
+function Container({ title, children }) {
+  return (
+    <div className="bg-cyan-50 border border-gray-200 rounded-2xl shadow-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+        {title}
+      </h2>
+      <div className="space-y-2">
+        {children}
       </div>
     </div>
-  )
+  );
 }
 
-export default Container
+export default Container;

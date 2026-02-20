@@ -23,7 +23,7 @@ const TAGS = [
 
 const MAX_SELECTIONS = 2;
 
-function TagSelector({ isNsfw, selectedTags, onTagToggle, onClose }) {
+function TagSelector({ isNsfw, selectedTags, onTagToggle }) {
   const visibleTags = isNsfw ? TAGS : TAGS.filter(tag => !tag.nsfw);
 
   const handleToggle = (slug) => {
@@ -35,9 +35,9 @@ function TagSelector({ isNsfw, selectedTags, onTagToggle, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-end justify-end bg-black/30 z-15">
-      <Container title="Tags">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-15">
+      <Container title="Selecione as Tags">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
           {visibleTags.map((tag) => {
             const isSelected = selectedTags.includes(tag.slug);
             const isDisabled = selectedTags.length >= MAX_SELECTIONS && !isSelected;
@@ -45,9 +45,14 @@ function TagSelector({ isNsfw, selectedTags, onTagToggle, onClose }) {
             return (
               <label
                 key={tag.slug}
-                className={`cursor-pointer flex items-center gap-2 p-2 rounded transition-all ${
-                  isDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100'
-                }`}
+                className={`
+                  flex items-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer
+                  ${isSelected
+                    ? 'bg-pink-50 border-pink-500 shadow-md'
+                    : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                  }
+                  ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
+                `}
               >
                 <input
                   type="checkbox"
@@ -57,14 +62,23 @@ function TagSelector({ isNsfw, selectedTags, onTagToggle, onClose }) {
                   disabled={isDisabled}
                   className="w-4 h-4 accent-pink-600 disabled:cursor-not-allowed"
                 />
-                <span className="text-sm md:text-base">{tag.name}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {tag.name}
+                </span>
               </label>
             );
           })}
         </div>
 
-        <div className="mt-4 text-center text-sm text-gray-600">
-          {selectedTags.length}/{MAX_SELECTIONS} tags selecionadas
+        <div className="pt-4 border-t border-gray-200 text-center">
+          <p className="text-sm font-medium text-gray-600">
+            {selectedTags.length}/{MAX_SELECTIONS} tags selecionadas
+          </p>
+          {selectedTags.length === MAX_SELECTIONS && (
+            <p className="text-xs text-pink-600 mt-1">
+              Desmarque uma tag para selecionar outra
+            </p>
+          )}
         </div>
       </Container>
     </div>
